@@ -1,0 +1,48 @@
+NAME
+    Compress::LZF - extremely leight-weight Lev-Zimpel-Free compression
+
+SYNOPSIS
+       use Compress::LZF;
+
+       $compressed = compress $uncompressed_data;
+
+       $original_data = decompress $compressed;
+
+DESCRIPTION
+    LZF is an extremely fast (not that much slower than a pure memcpy)
+    compression algorithm. It is ideal for applications where you want to
+    save *some* space but not at the cost of speed. It is ideal for
+    repetitive data as well. The module is self-contained and very small (no
+    large library to be pulled in). It is also free, so there should be no
+    problems incoporating this module into commercial programs.
+
+    I have no idea wether any patents in any countries apply to this
+    algorithm, but at the moment it is believed that it is free from any
+    patents.
+
+FUNCTIONS
+  $compressed = compress $uncompressed
+
+    Try to compress the given string as quickly and as much as possible. In
+    the worst case, the string can enlarge by 1 byte, but that should be the
+    absolute exception. You can expect a 45% compression ratio on large,
+    binary strings.
+
+  $decompressed = decompress $compressed
+
+    Uncompress the string (compressed by "compress") and return the original
+    data. Decompression errors can result in either broken data (there is no
+    checksum kept) or a runtime error.
+
+SEE ALSO
+    Other Compress::* modules, especially Compress::LZV1 (an older, less
+    speedy module that guarentees only 1 byte overhead worst case) and
+    Compress::Zlib.
+
+    http://liblzf.plan9.de/
+
+AUTHOR
+    This perl extension and the underlying liblzf were written by Marc
+    Lehmann <pcg@goof.com> (See also http://liblzf.plan9.de/).
+
+BUGS
