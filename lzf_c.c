@@ -41,7 +41,9 @@
 #define IDX(h) ((((h ^ (h << 4)) >> (3*8 - HLOG)) + h*3) & (HSIZE - 1))
 /*
  * IDX works because it is very similar to a multiplicative hash, e.g.
-#define IDX2(h) (h * 57321 >> (3*8 - HLOG)) & (HSIZE - 1)
+ * (h * 57321 >> (3*8 - HLOG))
+ * the next one is also quite good, albeit slow ;)
+ * (int)(cos(h & 0xffffff) * 1e6)
  */
 
 #if 0
@@ -76,7 +78,8 @@ lzf_compress (const void *const in_data, unsigned int in_len,
   const u8 *ref;
 
   unsigned int hval = FRST (ip);
-  unsigned int off, lit = 0;
+  unsigned int off;
+           int lit = 0;
 
 #if INIT_HTAB
 # if USE_MEMCPY
