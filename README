@@ -88,6 +88,6 @@ SEE ALSO
 
 AUTHOR
     This perl extension and the underlying liblzf were written by Marc
-    Lehmann <pcg@goof.com> (See also http://liblzf.plan9.de/).
+    Lehmann <schmorp@schmorp.de> (See also http://liblzf.plan9.de/).
 
 BUGS

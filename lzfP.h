@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000-2003 Marc Alexander Lehmann <pcg@goof.com>
+ * Copyright (c) 2000-2005 Marc Alexander Lehmann <schmorp@schmorp.de>
  * 
  * Redistribution and use in source and binary forms, with or without modifica-
  * tion, are permitted provided that the following conditions are met:
@@ -129,7 +129,11 @@ typedef const u8 *LZF_STATE[1 << (HLOG)];
 #endif
 
 #if USE_MEMCPY || INIT_HTAB
-# include <string.h>
+# ifdef __cplusplus
+#  include <cstring>
+# else
+#  include <string.h>
+# endif
 #endif
 
 #endif

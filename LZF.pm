@@ -100,7 +100,7 @@ http://liblzf.plan9.de/
 =head1 AUTHOR
 
 This perl extension and the underlying liblzf were written by Marc Lehmann
-<pcg@goof.com> (See also http://liblzf.plan9.de/).
+<schmorp@schmorp.de> (See also http://liblzf.plan9.de/).
 
 =head1 BUGS
 
@@ -111,7 +111,7 @@ package Compress::LZF;
 require Exporter;
 require DynaLoader;
 
-$VERSION = '1.4';
+$VERSION = '1.401';
 @ISA = qw/Exporter DynaLoader/;
 %EXPORT_TAGS = (
       freeze   => [qw(sfreeze sfreeze_cr sfreeze_c sthaw)],
