@@ -1,5 +1,10 @@
 Revision history for Perl extension Compress::LZF
 
+0.1041 Wed Apr 10 05:12:47 CEST 2002
+	- sthaw now returns a copy of it's argument instead of the argument
+          itself in the pass-through case, as this i the required semantics
+          for perl.
+
 0.104 Tue Mar 26 18:48:02 CET 2002
 	- fix more logic bugs. never wrote functions with such contorted
           logic :( maybe I should just ignore the idea of saving single bytes

@@ -345,4 +345,4 @@ sthaw(sv)
               }
           }
         else
-          XPUSHs (sv_2mortal (SvREFCNT_inc (sv)));
+          XPUSHs (sv_2mortal (newSVsv (sv)));
