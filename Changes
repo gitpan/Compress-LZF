@@ -1,5 +1,8 @@
 Revision history for Perl extension Compress::LZF
 
+1.4   Wed Dec 15 08:09:33 CET 2004
+	- upgraded to liblzf-1.4.
+
 1.0   Mon May  3 20:25:07 CEST 2004
 	- yet another minor reference copying vs. inc bug.
 
