@@ -267,6 +267,7 @@ sthaw(sv)
         PROTOTYPE: $
         PPCODE:
 
+        SvGETMAGIC (sv);
         if (SvPOK (sv) && IN_RANGE (SvPV_nolen (sv)[0], MAGIC_LO, MAGIC_HI))
           {
             switch (SvPVX (sv)[0])

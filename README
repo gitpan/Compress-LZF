@@ -30,20 +30,17 @@ DESCRIPTION
 
 FUNCTIONS
   $compressed = compress $uncompressed
-
     Try to compress the given string as quickly and as much as possible. In
     the worst case, the string can enlarge by 1 byte, but that should be the
     absolute exception. You can expect a 45% compression ratio on large,
     binary strings.
 
   $decompressed = decompress $compressed
-
     Uncompress the string (compressed by "compress") and return the original
     data. Decompression errors can result in either broken data (there is no
     checksum kept) or a runtime error.
 
   $serialized = sfreeze $value (simplified freeze)
-
     Often there is the need to serialize data into a string. This function
     does that, by using the Storable module. It does the following
     transforms:
@@ -65,18 +62,15 @@ FUNCTIONS
     and will only load the Storable method when neccessary.
 
   $serialized = sfreeze_c $value (sfreeze and compress)
-
     Similar to "sfreeze", but always tries to "c"ompress the resulting
     string. This still leaves most small objects (most numbers) untouched.
 
   $serialized = sfreeze_cr $value (sfreeze and compress references)
-
     Similar to "sfreeze", but tries to "c"ompress the resulting string
     unless it's a "simple" string. References for example are not "simple"
     and as such are being compressed.
 
   $original_data = sthaw $serialized
-
     Recreate the original object from it's serialized representation. This
     function automatically detects all the different sfreeze formats.
 

@@ -1,5 +1,8 @@
 Revision history for Perl extension Compress::LZF
 
+0.101 Fri Feb 22 01:15:25 CET 2002
+	- handle magic in sthaw.
+
 0.1   Thu Sep 27 18:50:11 CEST 2001
 	- compress/decompress considered stable.
         - added sfreeze, sfreeze_c and sfreeze_cr.
