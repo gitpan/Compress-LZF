@@ -164,14 +164,14 @@ decompress_sv (SV *data, int skip)
               usize = (usize << 6) | (*src++ & 0x3f);
             }
           else
-            croak ("compressed data corrupted");
+            croak ("compressed data corrupted (invalid length)");
                     
           ret = NEWSV (0, usize);
           SvPOK_only (ret);
           dst = SvPVX (ret);
 
           if (lzf_decompress (src, csize, dst, usize) != usize)
-            croak ("compressed data corrupted", csize, skip, usize);
+            croak ("compressed data corrupted (size mismatch)", csize, skip, usize);
         }
       else
         {
@@ -268,7 +268,7 @@ sfreeze(sv)
 
             XPUSHs (sv);
           }
-        else if (SvTYPE (sv) == SVt_PV && IN_RANGE (SvPVX (sv)[0], MAGIC_LO, MAGIC_HI))
+        else if (SvPOKp (sv) && IN_RANGE (SvPVX (sv)[0], MAGIC_LO, MAGIC_HI))
           XPUSHs (sv_2mortal (compress_sv (sv, MAGIC_C, MAGIC_U))); /* need to prefix only */
         else if (ix == 2) /* compress always */
           XPUSHs (sv_2mortal (compress_sv (sv, MAGIC_C, -1)));

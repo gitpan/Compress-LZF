@@ -1,5 +1,9 @@
 Revision history for Perl extension Compress::LZF
 
+0.1043 Sat May 18 23:40:01 CEST 2002
+	- bugfix when freezing non-SVt_PV-PV's.
+        - thanks to all cpan-testers ;)
+
 0.1042 Fri May 17 22:09:08 CEST 2002
 	- removed some debugging code that kept sfreeze from properly
 
