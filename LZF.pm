@@ -60,7 +60,7 @@ package Compress::LZF;
 require Exporter;
 require DynaLoader;
 
-$VERSION = 0.01;
+$VERSION = 0.02;
 @ISA = qw/Exporter DynaLoader/;
 @EXPORT = qw(compress decompress);
 bootstrap Compress::LZF $VERSION;

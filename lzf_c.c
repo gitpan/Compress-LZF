@@ -33,13 +33,19 @@
 /*
  * don't play with this unless you benchmark!
  * decompression is not dependent on the hash function
+ * the hashing function might seem strange, just believe me
+ * it works ;)
  */
 #define FRST(p) (((p[0]) << 8) + p[1])
 #define NEXT(v,p) (((v) << 8) + p[2])
-#define IDX(h) ((((h ^ (h << 4)) >> ((3 * 8) - HLOG)) + h) & (HSIZE - 1))
+#define IDX(h) ((((h ^ (h << 4)) >> (3*8 - HLOG)) + h*3) & (HSIZE - 1))
+/*
+ * IDX works because it is very similar to a multiplicative hash, e.g.
+#define IDX2(h) (h * 57321 >> (3*8 - HLOG)) & (HSIZE - 1)
+ */
 
 #if 0
-/* original lzv hash function */
+/* original lzv-like hash function */
 # define FRST(p) (p[0] << 5) ^ p[1]
 # define NEXT(v,p) (v << 5) ^ p[2]
 # define IDX(h) (h) & (HSIZE - 1)
@@ -72,6 +78,15 @@ lzf_compress (const void *const in_data, unsigned int in_len,
   unsigned int hval = FRST (ip);
   unsigned int off, lit = 0;
 
+#if INIT_HTAB
+# if USE_MEMCPY
+    memset (htab, 0, sizeof (htab));
+# else
+    for (off = 0; off < HSIZE; off++)
+      htab[off] = ip;
+# endif
+#endif
+
   do
     {
       hval = NEXT (hval, ip);
@@ -79,16 +94,20 @@ lzf_compress (const void *const in_data, unsigned int in_len,
       ref = htab[off];
       htab[off] = ip;
 
-      if (ref < ip
+      if (1
+#if INIT_HTAB && !USE_MEMCPY
+          && ref < ip /* the next test will actually take care of this, but it is faster */
+#endif
 	  && (off = ip - ref - 1) < MAX_OFF
 	  && ip + 4 < in_end
           && ref > (u8 *)in_data
+#if STRICT_ALIGN
 	  && ref[0] == ip[0]
-#if ALIGN_U16
 	  && ref[1] == ip[1]
 	  && ref[2] == ip[2]
 #else
-	  && *(u16 *) (ref + 1) == *(u16 *) (ip + 1)
+	  && *(u16 *)ref == *(u16 *)ip
+	  && ref[2] == ip[2]
 #endif
 	)
 	{

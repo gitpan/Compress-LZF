@@ -9,8 +9,6 @@ t/00_load.t
 t/01_run.t
 LZF.pm
 LZF.xs
-config.h
-lzf.h
 lzfP.h
 lzf_c.c
 lzf_d.c
