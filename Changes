@@ -1,5 +1,8 @@
 Revision history for Perl extension Compress::LZF
 
+1.5   Tue Mar  8 21:04:23 CET 2005
+	- upgraded to liblzf-1.5 (faster, slightly less compression).
+
 1.401 Thu Mar  3 18:00:52 CET 2005
 	- upgraded to liblzf-1.401.
 	- change of contact address.
