@@ -366,7 +366,7 @@ sthaw(sv)
                         SvPVX (sv)[0] = MAGIC_R_deref;
                     }
                   else
-                    XPUSHs (POPs); /* this is a nop, hopefully */
+                    SETs (sv_2mortal (newSVsv (TOPs)));
 
                   break; 
 
@@ -376,3 +376,4 @@ sthaw(sv)
           }
         else
           XPUSHs (sv_2mortal (newSVsv (sv)));
+

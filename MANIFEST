@@ -13,3 +13,8 @@ LZF.xs
 lzfP.h
 lzf_c.c
 lzf_d.c
+
+debian/control
+debian/changelog
+debian/rules
+META.yml                                 Module meta-data (added by MakeMaker)

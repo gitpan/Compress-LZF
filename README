@@ -1,5 +1,5 @@
 NAME
-    Compress::LZF - extremely leight-weight Lev-Zimpel-Free compression
+    Compress::LZF - extremely light-weight Lev-Zimpel-Free compression
 
 SYNOPSIS
        # import compress/decompress functions
