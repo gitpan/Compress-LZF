@@ -230,7 +230,8 @@ sfreeze(sv)
           XPUSHs (sv_2mortal (newSVpvn ("\02", 1))); /* 02 == MAGIC_undef */
         else if (SvTYPE(sv) != SVt_IV
             && SvTYPE(sv) != SVt_NV
-            && SvTYPE(sv) != SVt_PV) /* mstore */
+            && SvTYPE(sv) != SVt_PV
+            && SvTYPE(sv) != SVt_PVMG) /* mstore */
           {
             if (!storable_mstore)
               need_storable ();

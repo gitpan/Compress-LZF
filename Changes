@@ -1,5 +1,8 @@
 Revision history for Perl extension Compress::LZF
 
+0.102 Wed Feb 27 21:50:18 CET 2002
+	- handle magic in sfreeze.
+
 0.101 Fri Feb 22 01:15:25 CET 2002
 	- handle magic in sthaw.
 
