@@ -167,6 +167,6 @@ decompress(data)
           else
             ret = newSVpvn ("", 0);
 
-          XPUSHs (ret);
+          XPUSHs (sv_2mortal (ret));
         }
 
