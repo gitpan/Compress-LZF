@@ -1,5 +1,15 @@
 Revision history for Perl extension Compress::LZF
 
+0.104 Tue Mar 26 18:48:02 CET 2002
+	- fix more logic bugs. never wrote functions with such contorted
+          logic :( maybe I should just ignore the idea of saving single bytes
+          whereever possible to make this module much cleaner...
+
+0.103 Sun Mar  3 05:39:00 CET 2002
+	- try to handle magical objects that are no references
+          by creating a referebce to them and passing this ref to
+          storable.
+
 0.102 Wed Feb 27 21:50:18 CET 2002
 	- handle magic in sfreeze.
 

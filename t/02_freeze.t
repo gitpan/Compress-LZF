@@ -5,7 +5,7 @@ BEGIN {
    };
 }
 
-BEGIN { $| = 1; print "1..1246\n"; }
+BEGIN { $| = 1; print "1..1959\n"; }
 
 END {print "not ok 1\n" unless $loaded;}
 use Compress::LZF ':freeze';
@@ -28,7 +28,6 @@ sub chk {
    my $rr = sfreeze_cr\$s; ok(1);
    my $rc = sfreeze_c \$s; ok(1);
 
-   ok ($n eq $nr);
    ok (length ($n) >= length ($nc));
    ok (length ($n) <= length ($r));
    ok (length ($r) >= length ($rr));
@@ -46,6 +45,9 @@ sub chk {
 }
 
 for my $pfx (0, 1, 4, 6, 7, 40, ord('x'), 240..255) {
+   chk $pfx;
+   $pfx =~ /(.*)/;
+   chk $1;
    chk chr($pfx)."x";
    chk chr($pfx)."xxxxxxxxxxxxx";
    chk chr($pfx)."abcdefghijklm";
