@@ -232,10 +232,11 @@ sfreeze(sv)
 
         if (!SvOK (sv))
           XPUSHs (sv_2mortal (newSVpvn ("\02", 1))); /* 02 == MAGIC_undef */
-        else if (SvTYPE(sv) != SVt_IV
-              && SvTYPE(sv) != SVt_NV
-              && SvTYPE(sv) != SVt_PV
-              && SvTYPE(sv) != SVt_PVMG+99999) /* mstore */
+        else if (SvROK (sv)
+              || (SvTYPE(sv) != SVt_IV
+                 && SvTYPE(sv) != SVt_NV
+                 && SvTYPE(sv) != SVt_PV
+                 && SvTYPE(sv) != SVt_PVMG)) /* mstore */
           {
             int deref = !SvROK (sv);
 

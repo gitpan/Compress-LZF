@@ -1,5 +1,8 @@
 Revision history for Perl extension Compress::LZF
 
+0.1042 Fri May 17 22:09:08 CEST 2002
+	- removed some debugging code that kept sfreeze from properly
+
 0.1041 Wed Apr 10 05:12:47 CEST 2002
 	- sthaw now returns a copy of it's argument instead of the argument
           itself in the pass-through case, as this i the required semantics
