@@ -83,6 +83,12 @@ as such are being compressed.
 Recreate the original object from it's serialized representation. This
 function automatically detects all the different sfreeze formats.
 
+=head2 Compress::LZF::set_serializer $package, $freeze, $thaw
+
+Set the serialize module and functions to use. The default is "Storable",
+"Storable::mstore" and "Storable::mretrieve", which should be fine for
+most purposes.
+
 =head1 SEE ALSO
 
 Other Compress::* modules, especially Compress::LZV1 (an older, less
@@ -105,7 +111,7 @@ package Compress::LZF;
 require Exporter;
 require DynaLoader;
 
-$VERSION = 0.1043;
+$VERSION = 0.1045;
 @ISA = qw/Exporter DynaLoader/;
 %EXPORT_TAGS = (
       freeze   => [qw(sfreeze sfreeze_cr sfreeze_c sthaw)],

@@ -1,5 +1,14 @@
 Revision history for Perl extension Compress::LZF
 
+0.1045 Thu Sep  5 23:54:11 CEST 2002
+	- always make a stringified copy of the argument for
+          sfreeze, so the assertion "sfreeze makes a string out
+          of it's argument" holds even for intengers.
+        - "simple" objects now include PVIV and PVNV.
+
+0.1044 Thu Sep  5 06:44:13 CEST 2002
+	- MINOR: add set_serializer interface.
+
 0.1043 Sat May 18 23:40:01 CEST 2002
 	- bugfix when freezing non-SVt_PV-PV's.
         - thanks to all cpan-testers ;)
@@ -9,7 +18,7 @@ Revision history for Perl extension Compress::LZF
 
 0.1041 Wed Apr 10 05:12:47 CEST 2002
 	- sthaw now returns a copy of it's argument instead of the argument
-          itself in the pass-through case, as this i the required semantics
+          itself in the pass-through case, as this is the required semantics
           for perl.
 
 0.104 Tue Mar 26 18:48:02 CET 2002

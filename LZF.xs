@@ -30,6 +30,7 @@ static STRLEN nolen_na;
 
 #define IN_RANGE(v,l,h) ((unsigned int)((unsigned)(v) - (unsigned)(l)) <= (unsigned)(h) - (unsigned)(l))
 
+static SV *serializer_package, *serializer_mstore, *serializer_mretrieve;
 static CV *storable_mstore, *storable_mretrieve;
 
 static SV *
@@ -194,16 +195,36 @@ static void
 need_storable(void)
 {
 #if PATCHLEVEL < 6
-  perl_eval_pv ("require Storable;", 1);
+  char req[8192];
+  sprintf (req, "require %s;", SvPV_nolen (serializer_package));
+  perl_eval_pv (req, 1);
 #else
-  load_module (PERL_LOADMOD_NOIMPORT, newSVpv ("Storable", 0), Nullsv);
+  load_module (PERL_LOADMOD_NOIMPORT, serializer_package, Nullsv);
 #endif
 
-  storable_mstore    = GvCV (gv_fetchpv ("Storable::mstore"   , TRUE, SVt_PVCV));
-  storable_mretrieve = GvCV (gv_fetchpv ("Storable::mretrieve", TRUE, SVt_PVCV));
+  storable_mstore    = GvCV (gv_fetchpv (SvPV_nolen (serializer_mstore   ), TRUE, SVt_PVCV));
+  storable_mretrieve = GvCV (gv_fetchpv (SvPV_nolen (serializer_mretrieve), TRUE, SVt_PVCV));
 }
 
 MODULE = Compress::LZF   PACKAGE = Compress::LZF
+
+BOOT:
+        serializer_package   = newSVpv ("Storable", 0);
+        serializer_mstore    = newSVpv ("Storable::mstore", 0);
+        serializer_mretrieve = newSVpv ("Storable::mretrieve", 0);
+
+void
+set_serializer(package, mstore, mretrieve)
+	SV *	package
+	SV *	mstore
+	SV *	mretrieve
+        PROTOTYPE: $$$
+        PPCODE:
+        SvSetSV (serializer_package  , package  );
+        SvSetSV (serializer_mstore   , mstore   );
+        SvSetSV (serializer_mretrieve, mretrieve);
+        storable_mstore =
+        storable_mretrieve = 0;
 
 void
 compress(data)
@@ -236,6 +257,8 @@ sfreeze(sv)
               || (SvTYPE(sv) != SVt_IV
                  && SvTYPE(sv) != SVt_NV
                  && SvTYPE(sv) != SVt_PV
+                 && SvTYPE(sv) != SVt_PVIV
+                 && SvTYPE(sv) != SVt_PVNV
                  && SvTYPE(sv) != SVt_PVMG)) /* mstore */
           {
             int deref = !SvROK (sv);
@@ -272,8 +295,14 @@ sfreeze(sv)
           XPUSHs (sv_2mortal (compress_sv (sv, MAGIC_C, MAGIC_U))); /* need to prefix only */
         else if (ix == 2) /* compress always */
           XPUSHs (sv_2mortal (compress_sv (sv, MAGIC_C, -1)));
+        else if (SvNIOK (sv)) /* don't compress */
+          {
+            STRLEN len;
+            char *s = SvPV (sv, len);
+            XPUSHs (sv_2mortal (newSVpvn (s, len)));
+          }
         else /* don't compress */
-          XPUSHs (sv_2mortal (SvREFCNT_inc (sv)));
+          XPUSHs (sv_2mortal (newSVsv (sv)));
 
 void
 sthaw(sv)
