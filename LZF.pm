@@ -1,6 +1,6 @@
 =head1 NAME
 
-Compress::LZF - extremely light-weight Lev-Zimpel-Free compression
+Compress::LZF - extremely light-weight Lempel-Ziv-Free compression
 
 =head1 SYNOPSIS
 
@@ -111,7 +111,7 @@ package Compress::LZF;
 require Exporter;
 require DynaLoader;
 
-$VERSION = '1.5';
+$VERSION = '1.51';
 @ISA = qw/Exporter DynaLoader/;
 %EXPORT_TAGS = (
       freeze   => [qw(sfreeze sfreeze_cr sfreeze_c sthaw)],

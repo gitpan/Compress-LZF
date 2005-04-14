@@ -33,6 +33,12 @@ static STRLEN nolen_na;
 static SV *serializer_package, *serializer_mstore, *serializer_mretrieve;
 static CV *storable_mstore, *storable_mretrieve;
 
+#if Size_t_size > 4
+# define MAX_LENGTH ((Size_t)0x80000000L)
+#else
+# define MAX_LENGTH ((Size_t) 0x8000000L)
+#endif
+
 static SV *
 compress_sv (SV *data, char cprepend, int uprepend)
 {
@@ -51,29 +57,29 @@ compress_sv (SV *data, char cprepend, int uprepend)
       if (cprepend)
         dst[skip++] = cprepend;
 
-      if (usize < 0x80)
+      if (usize <= 0x7f)
         {
           dst[skip++] = usize;
         }
-      else if (usize < 0x800) 
+      else if (usize <= 0x7ff) 
         {
           dst[skip++] = (( usize >>  6)         | 0xc0);
           dst[skip++] = (( usize        & 0x3f) | 0x80);
         }
-      else if (usize < 0x10000) 
+      else if (usize <= 0xffff) 
         {
           dst[skip++] = (( usize >> 12)         | 0xe0);
           dst[skip++] = (((usize >>  6) & 0x3f) | 0x80);
           dst[skip++] = (( usize        & 0x3f) | 0x80);
         }
-      else if (usize < 0x200000) 
+      else if (usize <= 0x1fffff) 
         {
           dst[skip++] = (( usize >> 18)         | 0xf0);
           dst[skip++] = (((usize >> 12) & 0x3f) | 0x80);
           dst[skip++] = (((usize >>  6) & 0x3f) | 0x80);
           dst[skip++] = (( usize        & 0x3f) | 0x80);
         }
-      else if (usize < 0x4000000) 
+      else if (usize <= 0x3ffffff) 
         {
           dst[skip++] = (( usize >> 24)         | 0xf8);
           dst[skip++] = (((usize >> 18) & 0x3f) | 0x80);
@@ -81,8 +87,17 @@ compress_sv (SV *data, char cprepend, int uprepend)
           dst[skip++] = (((usize >>  6) & 0x3f) | 0x80);
           dst[skip++] = (( usize        & 0x3f) | 0x80);
         }
+      else if (usize <= 0x7fffffff) 
+        {
+          dst[skip++] = (( usize >> 30)         | 0xfc);
+          dst[skip++] = (((usize >> 24) & 0x3f) | 0x80);
+          dst[skip++] = (((usize >> 18) & 0x3f) | 0x80);
+          dst[skip++] = (((usize >> 12) & 0x3f) | 0x80);
+          dst[skip++] = (((usize >>  6) & 0x3f) | 0x80);
+          dst[skip++] = (( usize        & 0x3f) | 0x80);
+        }
       else
-        croak ("compress can only compress up to %ld bytes", 0x4000000-1);
+        croak ("compress can only compress up to %ld bytes", 0x7fffffffL);
 
       /* 11 bytes is the smallest compressible string */
       csize = usize < 11 ? 0 :
@@ -159,6 +174,16 @@ decompress_sv (SV *data, int skip)
             {
               csize -= 5;
               usize =                 *src++ & 0x03;
+              usize = (usize << 6) | (*src++ & 0x3f);
+              usize = (usize << 6) | (*src++ & 0x3f);
+              usize = (usize << 6) | (*src++ & 0x3f);
+              usize = (usize << 6) | (*src++ & 0x3f);
+            }
+          else if (!(src[0] & 0x02))
+            {
+              csize -= 6;
+              usize =                 *src++ & 0x01;
+              usize = (usize << 6) | (*src++ & 0x3f);
               usize = (usize << 6) | (*src++ & 0x3f);
               usize = (usize << 6) | (*src++ & 0x3f);
               usize = (usize << 6) | (*src++ & 0x3f);

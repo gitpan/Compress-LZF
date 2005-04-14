@@ -1,7 +1,13 @@
 Revision history for Perl extension Compress::LZF
 
+1.51 Thu Apr 14 18:59:03 CEST 2005
+	- upped compress size limit from 64MB to 2GB (reported
+          by Jan Sundberg, who actually ran into the limit :).
+        - *blush*, changed Zev-Limpel to Lempel-Ziv... funny that
+          nobody spotted thta braino.
+
 1.5   Tue Mar  8 21:04:23 CET 2005
-	- upgraded to liblzf-1.5 (faster, slightly less compression).
+	- upgraded to liblzf-1.5 (faster, slightly worse compression).
 
 1.401 Thu Mar  3 18:00:52 CET 2005
 	- upgraded to liblzf-1.401.
