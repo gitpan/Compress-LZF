@@ -1,5 +1,8 @@
 Revision history for Perl extension Compress::LZF
 
+1.52 Sat Oct  1 03:23:52 CEST 2005
+	- changed mstore to net_mstore default.
+
 1.51 Thu Apr 14 18:59:03 CEST 2005
 	- upped compress size limit from 64MB to 2GB (reported
           by Jan Sundberg, who actually ran into the limit :).

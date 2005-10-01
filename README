@@ -76,8 +76,8 @@ FUNCTIONS
 
   Compress::LZF::set_serializer $package, $freeze, $thaw
     Set the serialize module and functions to use. The default is
-    "Storable", "Storable::mstore" and "Storable::mretrieve", which should
-    be fine for most purposes.
+    "Storable", "Storable::net_mstore" and "Storable::mretrieve", which
+    should be fine for most purposes.
 
 SEE ALSO
     Other Compress::* modules, especially Compress::LZV1 (an older, less

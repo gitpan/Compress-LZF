@@ -86,7 +86,7 @@ function automatically detects all the different sfreeze formats.
 =head2 Compress::LZF::set_serializer $package, $freeze, $thaw
 
 Set the serialize module and functions to use. The default is "Storable",
-"Storable::mstore" and "Storable::mretrieve", which should be fine for
+"Storable::net_mstore" and "Storable::mretrieve", which should be fine for
 most purposes.
 
 =head1 SEE ALSO
@@ -111,7 +111,7 @@ package Compress::LZF;
 require Exporter;
 require DynaLoader;
 
-$VERSION = '1.51';
+$VERSION = '1.52';
 @ISA = qw/Exporter DynaLoader/;
 %EXPORT_TAGS = (
       freeze   => [qw(sfreeze sfreeze_cr sfreeze_c sthaw)],

@@ -235,7 +235,7 @@ MODULE = Compress::LZF   PACKAGE = Compress::LZF
 
 BOOT:
         serializer_package   = newSVpv ("Storable", 0);
-        serializer_mstore    = newSVpv ("Storable::mstore", 0);
+        serializer_mstore    = newSVpv ("Storable::net_mstore", 0);
         serializer_mretrieve = newSVpv ("Storable::mretrieve", 0);
 
 void
