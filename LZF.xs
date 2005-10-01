@@ -27,6 +27,7 @@ static STRLEN nolen_na;
 #define MAGIC_CR_deref	5 /* storable (NO reference, freeze), compressed */
 #define MAGIC_R_deref	6 /* storable (NO reference, freeze) */
 #define MAGIC_HI	7 /* room for one higher storable major */
+/* for historical reasons, MAGIC_undef + MAGIC_R and MAGIC_undef + MAGIC_R_deref are used, too */
 
 #define IN_RANGE(v,l,h) ((unsigned int)((unsigned)(v) - (unsigned)(l)) <= (unsigned)(h) - (unsigned)(l))
 
@@ -305,11 +306,20 @@ sfreeze(sv)
 
             sv = POPs;
 
-            if (SvPVX (sv)[0] != MAGIC_R)
-              croak ("Storable format changed, need newer version of Compress::LZF");
+            if (SvPVX (sv)[0] == MAGIC_R)
+              {
+                if (deref)
+                  SvPVX (sv)[0] = MAGIC_R_deref;
+              }
+            else
+              {
+                char pfx[2];
 
-            if (deref)
-              SvPVX (sv)[0] = MAGIC_R_deref;
+                pfx[0] = MAGIC_undef;
+                pfx[1] = deref ? MAGIC_R_deref : MAGIC_R;
+
+                sv_insert (sv, 0, 0, pfx, 2);
+              }
 
             if (ix) /* compress */
               sv = sv_2mortal (compress_sv (sv, deref ? MAGIC_CR_deref : MAGIC_CR, -1));
@@ -334,16 +344,46 @@ sthaw(sv)
 	SV *	sv
         PROTOTYPE: $
         PPCODE:
-
+{
+        STRLEN svlen;
         int deref = 0;
 
         SvGETMAGIC (sv);
-        if (SvPOK (sv) && IN_RANGE (SvPV_nolen (sv)[0], MAGIC_LO, MAGIC_HI))
+        if (SvPOK (sv) && IN_RANGE (SvPV (sv, svlen)[0], MAGIC_LO, MAGIC_HI))
           {
+            redo:
+
             switch (SvPVX (sv)[0])
               {
                 case MAGIC_undef:
-                  XPUSHs (sv_2mortal (NEWSV (0, 0)));
+                  if (svlen <= 1)
+                    XPUSHs (sv_2mortal (NEWSV (0, 0)));
+                  else
+                    {
+                      if (SvPVX (sv)[1] == MAGIC_R_deref)
+                        deref = 1;
+                      else if (SvPVX (sv)[1] != MAGIC_R)
+                        croak ("Compress::LZF::sthaw(): invalid data, maybe you need a newer version of Compress::LZF?");
+
+                      sv_chop (sv, SvPVX (sv) + 2);
+
+                      if (!storable_mstore)
+                        need_storable ();
+
+                      PUSHMARK (SP);
+                      XPUSHs (sv);
+                      PUTBACK;
+
+                      if (1 != call_sv ((SV *)storable_mretrieve, G_SCALAR))
+                        croak ("Storable::mstore didn't return a single scalar");
+
+                      SPAGAIN;
+
+                      if (deref)
+                        SETs (sv_2mortal (SvREFCNT_inc (SvRV (TOPs))));
+                      else
+                        SETs (sv_2mortal (newSVsv (TOPs)));
+                    }
                   break;
 
                 case MAGIC_U:
@@ -366,8 +406,8 @@ sthaw(sv)
                   if (deref)
                     if (SvPVX (sv)[0] == MAGIC_R_deref)
                       SvPVX (sv)[0] = MAGIC_R;
-                    else
-                      croak ("Compress::LZF::sthaw(): invalid data, maybe you need a newer version of Compress::LZF?");
+
+                  goto redo;
 
                 case MAGIC_R:
                 handle_MAGIC_R:
@@ -401,4 +441,5 @@ sthaw(sv)
           }
         else
           XPUSHs (sv_2mortal (newSVsv (sv)));
+}
 

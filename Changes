@@ -1,5 +1,8 @@
 Revision history for Perl extension Compress::LZF
 
+1.6  Sat Oct  1 03:34:11 CEST 2005
+        - now really allow non-Storable serialisers.
+
 1.52 Sat Oct  1 03:23:52 CEST 2005
 	- changed mstore to net_mstore default.
 
