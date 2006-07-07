@@ -1,5 +1,8 @@
 Revision history for Perl extension Compress::LZF
 
+1.65 Fri Jul  7 17:42:12 CEST 2006
+	- upgrade to liblzf-1.6.
+
 1.6  Sat Oct  1 03:34:11 CEST 2005
         - now really allow non-Storable serialisers.
 
