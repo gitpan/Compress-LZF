@@ -145,25 +145,25 @@ decompress_sv (SV *data, int skip)
 
       if (src[0])
         {
-          if (!(src[0] & 0x80))
+          if (!(src[0] & 0x80) && csize >= 1)
             {
               csize -= 1;
               usize =                 *src++ & 0xff;
             }
-          else if (!(src[0] & 0x20))
+          else if (!(src[0] & 0x20) && csize >= 2)
             {
               csize -= 2;
               usize =                 *src++ & 0x1f;
               usize = (usize << 6) | (*src++ & 0x3f);
             }
-          else if (!(src[0] & 0x10))
+          else if (!(src[0] & 0x10) && csize >= 3)
             {
               csize -= 3;
               usize =                 *src++ & 0x0f;
               usize = (usize << 6) | (*src++ & 0x3f);
               usize = (usize << 6) | (*src++ & 0x3f);
             }
-          else if (!(src[0] & 0x08))
+          else if (!(src[0] & 0x08) && csize >= 4)
             {
               csize -= 4;
               usize =                 *src++ & 0x07;
@@ -171,7 +171,7 @@ decompress_sv (SV *data, int skip)
               usize = (usize << 6) | (*src++ & 0x3f);
               usize = (usize << 6) | (*src++ & 0x3f);
             }
-          else if (!(src[0] & 0x04))
+          else if (!(src[0] & 0x04) && csize >= 5)
             {
               csize -= 5;
               usize =                 *src++ & 0x03;
@@ -180,7 +180,7 @@ decompress_sv (SV *data, int skip)
               usize = (usize << 6) | (*src++ & 0x3f);
               usize = (usize << 6) | (*src++ & 0x3f);
             }
-          else if (!(src[0] & 0x02))
+          else if (!(src[0] & 0x02) && csize >= 6)
             {
               csize -= 6;
               usize =                 *src++ & 0x01;
@@ -191,6 +191,9 @@ decompress_sv (SV *data, int skip)
               usize = (usize << 6) | (*src++ & 0x3f);
             }
           else
+            croak ("compressed data corrupted (invalid length)");
+
+          if (!usize)
             croak ("compressed data corrupted (invalid length)");
                     
           ret = NEWSV (0, usize);
@@ -203,7 +206,7 @@ decompress_sv (SV *data, int skip)
       else
         {
           usize = csize - 1;
-          ret = NEWSV (0, usize);
+          ret = NEWSV (0, usize | 1);
           SvPOK_only (ret);
 
           Move ((void *)(src + 1), (void *)SvPVX (ret), usize, unsigned char);
