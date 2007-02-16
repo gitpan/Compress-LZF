@@ -1,5 +1,10 @@
 Revision history for Perl extension Compress::LZF
 
+1.71 Fri Feb 16 23:09:04 CET 2007
+	- fix memory leak when feeding illegal data to decompress.
+        - allocate hash dynamically - slower, but having 256k of stack
+          is not ubiquitiously available.
+
 1.7  Wed Sep 27 17:52:39 CEST 2006
 	- fix buffer overflows in decompress header.
 

@@ -14,6 +14,9 @@ static STRLEN nolen_na;
 # define call_sv perl_call_sv
 #endif
 
+#define LZF_STANDALONE 1
+#define LZF_STATE_ARG 1
+
 #include "lzf_c.c"
 #include "lzf_d.c"
 
@@ -43,6 +46,7 @@ static CV *storable_mstore, *storable_mretrieve;
 static SV *
 compress_sv (SV *data, char cprepend, int uprepend)
 {
+  LZF_STATE *state;
   STRLEN usize, csize;
   char *src = (char *)SvPV (data, usize);
 
@@ -100,11 +104,15 @@ compress_sv (SV *data, char cprepend, int uprepend)
       else
         croak ("compress can only compress up to %ld bytes", 0x7fffffffL);
 
+      New (0, state, 1, LZF_STATE);
+      if (!state)
+        croak ("Compress::LZF unable to allocate memory for compression state");
+
       /* 11 bytes is the smallest compressible string */
       csize = usize < 11 ? 0 :
-              lzf_compress (src, usize,
-                                  dst + skip,
-                                  usize - skip);
+              lzf_compress (src, usize, dst + skip, usize - skip, *state);
+
+      Safefree (state);
 
       if (csize)
         {
@@ -201,7 +209,10 @@ decompress_sv (SV *data, int skip)
           dst = SvPVX (ret);
 
           if (lzf_decompress (src, csize, dst, usize) != usize)
-            croak ("compressed data corrupted (size mismatch)", csize, skip, usize);
+            {
+              SvREFCNT_dec (ret);
+              croak ("compressed data corrupted (size mismatch)", csize, skip, usize);
+            }
         }
       else
         {
