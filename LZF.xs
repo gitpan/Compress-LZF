@@ -2,18 +2,6 @@
 #include "perl.h"
 #include "XSUB.h"
 
-/* try to be compatible with older perls */
-/* SvPV_nolen() macro first defined in 5.005_55 */
-/* this is slow, not threadsafe, but works */
-#include "patchlevel.h"
-#if (PATCHLEVEL == 4) || ((PATCHLEVEL == 5) && (SUBVERSION < 55))
-static STRLEN nolen_na;
-# define SvPV_nolen(sv) SvPV ((sv), nolen_na)
-#endif
-#if PATCHLEVEL < 6
-# define call_sv perl_call_sv
-#endif
-
 #define LZF_STANDALONE 1
 #define LZF_STATE_ARG 1
 
@@ -48,7 +36,7 @@ compress_sv (SV *data, char cprepend, int uprepend)
 {
   LZF_STATE *state;
   STRLEN usize, csize;
-  char *src = (char *)SvPV (data, usize);
+  char *src = (char *)SvPVbyte (data, usize);
 
   if (usize)
     {
@@ -142,7 +130,7 @@ static SV *
 decompress_sv (SV *data, int skip)
 {
   STRLEN usize, csize;
-  unsigned char *src = (unsigned char *)SvPV (data, csize) + skip;
+  unsigned char *src = (unsigned char *)SvPVbyte (data, csize) + skip;
 
   if (csize)
     {
@@ -234,16 +222,10 @@ decompress_sv (SV *data, int skip)
 static void
 need_storable(void)
 {
-#if PATCHLEVEL < 6
-  char req[8192];
-  sprintf (req, "require %s;", SvPV_nolen (serializer_package));
-  perl_eval_pv (req, 1);
-#else
   load_module (PERL_LOADMOD_NOIMPORT, serializer_package, Nullsv);
-#endif
 
-  storable_mstore    = GvCV (gv_fetchpv (SvPV_nolen (serializer_mstore   ), TRUE, SVt_PVCV));
-  storable_mretrieve = GvCV (gv_fetchpv (SvPV_nolen (serializer_mretrieve), TRUE, SVt_PVCV));
+  storable_mstore    = GvCV (gv_fetchpv (SvPVbyte_nolen (serializer_mstore   ), TRUE, SVt_PVCV));
+  storable_mretrieve = GvCV (gv_fetchpv (SvPVbyte_nolen (serializer_mretrieve), TRUE, SVt_PVCV));
 }
 
 MODULE = Compress::LZF   PACKAGE = Compress::LZF
@@ -294,12 +276,13 @@ sfreeze(sv)
         if (!SvOK (sv))
           XPUSHs (sv_2mortal (newSVpvn ("\02", 1))); /* 02 == MAGIC_undef */
         else if (SvROK (sv)
-              || (SvTYPE(sv) != SVt_IV
-                 && SvTYPE(sv) != SVt_NV
-                 && SvTYPE(sv) != SVt_PV
-                 && SvTYPE(sv) != SVt_PVIV
-                 && SvTYPE(sv) != SVt_PVNV
-                 && SvTYPE(sv) != SVt_PVMG)) /* mstore */
+                 || SvUTF8 (sv)
+                 || (SvTYPE(sv) != SVt_IV
+                     && SvTYPE(sv) != SVt_NV
+                     && SvTYPE(sv) != SVt_PV
+                     && SvTYPE(sv) != SVt_PVIV
+                     && SvTYPE(sv) != SVt_PVNV
+                     && SvTYPE(sv) != SVt_PVMG)) /* mstore */
           {
             int deref = !SvROK (sv);
 
@@ -363,7 +346,7 @@ sthaw(sv)
         int deref = 0;
 
         SvGETMAGIC (sv);
-        if (SvPOK (sv) && IN_RANGE (SvPV (sv, svlen)[0], MAGIC_LO, MAGIC_HI))
+        if (SvPOK (sv) && IN_RANGE (SvPVbyte (sv, svlen)[0], MAGIC_LO, MAGIC_HI))
           {
             redo:
 

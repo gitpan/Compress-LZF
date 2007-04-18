@@ -1,5 +1,11 @@
 Revision history for Perl extension Compress::LZF
 
+1.8  Wed Apr 18 14:40:20 CEST 2007
+	- properly downgrade all scalars to octet form when
+          required.
+        - strings potentially containing non-latin1 characters
+          get frozen via the serialiser.
+
 1.71 Fri Feb 16 23:09:04 CET 2007
 	- fix memory leak when feeding illegal data to decompress.
         - allocate hash dynamically - slower, but having 256k of stack
