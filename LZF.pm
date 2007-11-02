@@ -25,7 +25,7 @@ compression algorithm. It is ideal for applications where you want to save
 I<some> space but not at the cost of speed. It is ideal for repetitive
 data as well. The module is self-contained and very small (no large
 library to be pulled in). It is also free, so there should be no problems
-incoporating this module into commercial programs.
+incorporating this module into commercial programs.
 
 I have no idea wether any patents in any countries apply to this
 algorithm, but at the moment it is believed that it is free from any
@@ -111,7 +111,7 @@ package Compress::LZF;
 require Exporter;
 require DynaLoader;
 
-$VERSION = '1.8';
+$VERSION = '1.9';
 @ISA = qw/Exporter DynaLoader/;
 %EXPORT_TAGS = (
       freeze   => [qw(sfreeze sfreeze_cr sfreeze_c sthaw)],
