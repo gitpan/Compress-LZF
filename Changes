@@ -1,5 +1,8 @@
 Revision history for Perl extension Compress::LZF
 
+2.0  Tue Nov 13 22:49:57 CET 2007
+	- update to liblzf-3.0.
+
 1.9  Fri Nov  2 13:34:21 CET 2007
 	- require perl 5.008.
         - updated to liblzf version 2.1.
