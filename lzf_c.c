@@ -138,7 +138,7 @@ lzf_compress (const void *const in_data, unsigned int in_len,
       ref = *hslot; *hslot = ip;
 
       if (1
-#if INIT_HTAB && !USE_MEMCPY
+#if INIT_HTAB
           && ref < ip /* the next test will actually take care of this, but this is faster */
 #endif
           && (off = ip - ref - 1) < MAX_OFF
@@ -256,12 +256,18 @@ lzf_compress (const void *const in_data, unsigned int in_len,
         }
     }
 
-  if (op + 2 > out_end) /* at most 2 bytes can be missing here */
+  if (op + 3 > out_end) /* at most 3 bytes can be missing here */
     return 0;
 
   while (ip < in_end)
     {
       lit++; *op++ = *ip++;
+
+      if (expect_false (lit == MAX_LIT))
+        {
+          op [- lit - 1] = lit - 1; /* stop run */
+          lit = 0; op++; /* start run */
+        }
     }
 
   op [- lit - 1] = lit - 1; /* end run */
