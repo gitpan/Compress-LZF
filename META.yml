@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Compress-LZF
-version:             3.1
+version:             3.11
 abstract:            ~
 license:             ~
 generated_by:        ExtUtils::MakeMaker version 6.32

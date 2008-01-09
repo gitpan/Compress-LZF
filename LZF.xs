@@ -287,7 +287,11 @@ sfreeze(sv)
             int deref = !SvROK (sv);
 
             if (!storable_mstore)
-              need_storable ();
+              {
+                PUTBACK;
+                need_storable ();
+                SPAGAIN;
+              }
 
             if (deref)
               sv = newRV_noinc (sv);
@@ -365,7 +369,11 @@ sthaw(sv)
                       sv_chop (sv, SvPVX (sv) + 2);
 
                       if (!storable_mstore)
-                        need_storable ();
+                        {
+                          PUTBACK;
+                          need_storable ();
+                          SPAGAIN;
+                        }
 
                       PUSHMARK (SP);
                       XPUSHs (sv);
@@ -409,7 +417,11 @@ sthaw(sv)
                 case MAGIC_R:
                 handle_MAGIC_R:
                   if (!storable_mstore)
-                    need_storable ();
+                    {
+                      PUTBACK;
+                      need_storable ();
+                      SPAGAIN;
+                    }
 
                   PUSHMARK (SP);
                   XPUSHs (sv);

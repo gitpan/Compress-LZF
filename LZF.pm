@@ -111,7 +111,7 @@ package Compress::LZF;
 require Exporter;
 require DynaLoader;
 
-$VERSION = '3.1';
+$VERSION = '3.11';
 @ISA = qw/Exporter DynaLoader/;
 %EXPORT_TAGS = (
       freeze   => [qw(sfreeze sfreeze_cr sfreeze_c sthaw)],
