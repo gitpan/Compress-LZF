@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000-2007 Marc Alexander Lehmann <schmorp@schmorp.de>
+ * Copyright (c) 2000-2008 Marc Alexander Lehmann <schmorp@schmorp.de>
  * 
  * Redistribution and use in source and binary forms, with or without modifica-
  * tion, are permitted provided that the following conditions are met:
@@ -113,8 +113,19 @@ lzf_compress (const void *const in_data, unsigned int in_len,
         u8 *out_end = op + out_len;
   const u8 *ref;
 
-  unsigned int hval;
+  /* off requires a type wide enough to hold a general pointer difference.
+   * ISO C doesn't have that (size_t might not be enough and ptrdiff_t only
+   * works for differences within a single object). We also assume that no
+   * no bit pattern traps. Since the only platform that is both non-POSIX
+   * and fails to support both assumptions is windows 64 bit, we make a
+   * special workaround for it.
+   */
+#if defined (WIN32) && defined (_M_X64)
+  unsigned _int64 off; /* workaround for missing POSIX compliance */
+#else
   unsigned long off;
+#endif
+  unsigned int hval;
   int lit;
 
   if (!in_len || !out_len)
@@ -197,7 +208,7 @@ lzf_compress (const void *const in_data, unsigned int in_len,
               break;
             }
 
-          len -= 2;
+          len -= 2; /* len is now #octets - 1 */
           ip++;
 
           if (len < 7)
@@ -211,24 +222,32 @@ lzf_compress (const void *const in_data, unsigned int in_len,
             }
 
           *op++ = off;
+          lit = 0; op++; /* start run */
+
+          ip += len + 1;
+
+          if (expect_false (ip >= in_end - 2))
+            break;
 
 #if ULTRA_FAST || VERY_FAST
-          ip += len;
-#if VERY_FAST && !ULTRA_FAST
           --ip;
-#endif
+# if VERY_FAST && !ULTRA_FAST
+          --ip;
+# endif
           hval = FRST (ip);
 
           hval = NEXT (hval, ip);
           htab[IDX (hval)] = ip;
           ip++;
 
-#if VERY_FAST && !ULTRA_FAST
+# if VERY_FAST && !ULTRA_FAST
           hval = NEXT (hval, ip);
           htab[IDX (hval)] = ip;
           ip++;
-#endif
+# endif
 #else
+          ip -= len + 1;
+
           do
             {
               hval = NEXT (hval, ip);
@@ -237,8 +256,6 @@ lzf_compress (const void *const in_data, unsigned int in_len,
             }
           while (len--);
 #endif
-
-          lit = 0; op++; /* start run */
         }
       else
         {

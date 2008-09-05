@@ -1,11 +1,12 @@
 --- #YAML:1.0
 name:                Compress-LZF
-version:             3.11
+version:             3.4
 abstract:            ~
 license:             ~
-generated_by:        ExtUtils::MakeMaker version 6.32
+author:              ~
+generated_by:        ExtUtils::MakeMaker version 6.44
 distribution_type:   module
 requires:     
 meta-spec:
-    url:     http://module-build.sourceforge.net/META-spec-v1.2.html
-    version: 1.2
+    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
+    version: 1.3

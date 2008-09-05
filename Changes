@@ -1,5 +1,8 @@
 Revision history for Perl extension Compress::LZF
 
+3.4  Fri Sep  5 17:27:10 CEST 2008
+	- update to liblzf-3.4.
+
 3.11 Wed Jan  9 22:43:17 CET 2008
 	- add PUTBACK/SPAGAIN around need_storable calls, fixing
           a potential stack change problem when loading the serialiser.
