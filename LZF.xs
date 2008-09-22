@@ -220,12 +220,12 @@ decompress_sv (SV *data, int skip)
 }
 
 static void
-need_storable(void)
+need_storable (void)
 {
-  load_module (PERL_LOADMOD_NOIMPORT, serializer_package, Nullsv);
+  require_pv (SvPVbyte_nolen (serializer_package));
 
-  storable_mstore    = GvCV (gv_fetchpv (SvPVbyte_nolen (serializer_mstore   ), TRUE, SVt_PVCV));
-  storable_mretrieve = GvCV (gv_fetchpv (SvPVbyte_nolen (serializer_mretrieve), TRUE, SVt_PVCV));
+  storable_mstore    = (CV *)SvREFCNT_inc (GvCV (gv_fetchpv (SvPVbyte_nolen (serializer_mstore   ), TRUE, SVt_PVCV)));
+  storable_mretrieve = (CV *)SvREFCNT_inc (GvCV (gv_fetchpv (SvPVbyte_nolen (serializer_mretrieve), TRUE, SVt_PVCV)));
 }
 
 MODULE = Compress::LZF   PACKAGE = Compress::LZF
@@ -245,8 +245,8 @@ set_serializer(package, mstore, mretrieve)
         SvSetSV (serializer_package  , package  );
         SvSetSV (serializer_mstore   , mstore   );
         SvSetSV (serializer_mretrieve, mretrieve);
-        storable_mstore =
-        storable_mretrieve = 0;
+        SvREFCNT_dec (storable_mstore   ); storable_mstore    = 0;
+        SvREFCNT_dec (storable_mretrieve); storable_mretrieve = 0;
 
 void
 compress(data)
@@ -285,6 +285,7 @@ sfreeze(sv)
                      && SvTYPE(sv) != SVt_PVMG)) /* mstore */
           {
             int deref = !SvROK (sv);
+            char *pv;
 
             if (!storable_mstore)
               {
@@ -306,11 +307,12 @@ sfreeze(sv)
             SPAGAIN;
 
             sv = POPs;
+            pv = SvPV_nolen (sv);
 
-            if (SvPVX (sv)[0] == MAGIC_R)
+            if (*pv == MAGIC_R)
               {
                 if (deref)
-                  SvPVX (sv)[0] = MAGIC_R_deref;
+                  *pv = MAGIC_R_deref;
               }
             else
               {
