@@ -1,5 +1,10 @@
 Revision history for Perl extension Compress::LZF
 
+3.42 Wed Dec 17 01:35:47 CET 2008
+        - grr, require_pv doesn't work either, roll our own.
+	- name the correct function serialiser function name
+          in error messages.
+
 3.41 Tue Sep 23 01:59:02 CEST 2008
 	- it would be nice if the fact that load_module eats
           the module name were documented :(, in any case,
