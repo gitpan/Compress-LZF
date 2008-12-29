@@ -1,5 +1,9 @@
 Revision history for Perl extension Compress::LZF
 
+3.43 Mon Dec 29 09:46:17 CET 2008
+	- port to perls that pointless have enabled windows process
+          emulation on unix (broguht to my attention by Guillaume Rousse).
+
 3.42 Wed Dec 17 01:35:47 CET 2008
         - grr, require_pv doesn't work either, roll our own.
 	- name the correct function serialiser function name

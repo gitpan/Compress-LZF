@@ -222,7 +222,7 @@ decompress_sv (SV *data, int skip)
 static void
 need_storable (void)
 {
-  eval_sv (sv_2mortal (Perl_newSVpvf ("require %s", SvPVbyte_nolen (serializer_package))), G_VOID | G_DISCARD);
+  eval_sv (sv_2mortal (newSVpvf ("require %s", SvPVbyte_nolen (serializer_package))), G_VOID | G_DISCARD);
 
   storable_mstore    = (CV *)SvREFCNT_inc (GvCV (gv_fetchpv (SvPVbyte_nolen (serializer_mstore   ), TRUE, SVt_PVCV)));
   storable_mretrieve = (CV *)SvREFCNT_inc (GvCV (gv_fetchpv (SvPVbyte_nolen (serializer_mretrieve), TRUE, SVt_PVCV)));
