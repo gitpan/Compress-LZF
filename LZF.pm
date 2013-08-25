@@ -33,20 +33,29 @@ patents.
 
 =head1 FUNCTIONS
 
-=head2 $compressed = compress $uncompressed
+=over 4
+
+=item $compressed = compress $uncompressed
+
+=item $compressed = compress_best $uncompressed
 
 Try to compress the given string as quickly and as much as possible. In
 the worst case, the string can enlarge by 1 byte, but that should be the
 absolute exception. You can expect a 45% compression ratio on large,
 binary strings.
 
-=head2 $decompressed = decompress $compressed
+The C<compress_best> function uses a different algorithm that is slower
+but usually achieves better compression.
+
+=item $decompressed = decompress $compressed
 
 Uncompress the string (compressed by C<compress>) and return the original
 data. Decompression errors can result in either broken data (there is no
 checksum kept) or a runtime error.
 
-=head2 $serialized = sfreeze $value (simplified freeze)
+=item $serialized = sfreeze $value (simplified freeze)
+
+=item $serialized = sfreeze_best $value
 
 Often there is the need to serialize data into a string. This function does that, by using the Storable
 module. It does the following transforms:
@@ -67,27 +76,42 @@ anyways, it tries to compress the string.
 The C<sfreeze> functions will enlarge the original data one byte at most
 and will only load the Storable method when neccessary.
 
-=head2 $serialized = sfreeze_c $value (sfreeze and compress)
+The C<sfreeze_best> function uses a different algorithm that is slower
+but usually achieves better compression.
+
+=item $serialized = sfreeze_c $value (sfreeze and compress)
+
+=item $serialized = sfreeze_c_best $value
 
 Similar to C<sfreeze>, but always tries to C<c>ompress the resulting
 string. This still leaves most small objects (most numbers) untouched.
 
-=head2 $serialized = sfreeze_cr $value (sfreeze and compress references)
+The C<sfreeze_c> function uses a different algorithm that is slower
+but usually achieves better compression.
+
+=item $serialized = sfreeze_cr $value (sfreeze and compress references)
+
+=item $serialized = sfreeze_cr_best $value
 
 Similar to C<sfreeze>, but tries to C<c>ompress the resulting string
 unless it's a "simple" string. References for example are not "simple" and
 as such are being compressed.
 
-=head2 $original_data = sthaw $serialized
+The C<sfreeze_cr_best> function uses a different algorithm that is slower
+but usually achieves better compression.
+
+=item $original_data = sthaw $serialized
 
 Recreate the original object from it's serialized representation. This
 function automatically detects all the different sfreeze formats.
 
-=head2 Compress::LZF::set_serializer $package, $freeze, $thaw
+=item Compress::LZF::set_serializer $package, $freeze, $thaw
 
 Set the serialize module and functions to use. The default is "Storable",
 "Storable::net_mstore" and "Storable::mretrieve", which should be fine for
 most purposes.
+
+=back
 
 =head1 SEE ALSO
 
@@ -111,11 +135,11 @@ package Compress::LZF;
 require Exporter;
 require DynaLoader;
 
-$VERSION = '3.43';
+$VERSION = '3.7';
 @ISA = qw/Exporter DynaLoader/;
 %EXPORT_TAGS = (
-      freeze   => [qw(sfreeze sfreeze_cr sfreeze_c sthaw)],
-      compress => [qw(compress decompress)],
+      freeze   => [qw(sfreeze sfreeze_best sfreeze_cr sfreeze_cr_best sfreeze_c sfreeze_c_best sthaw)],
+      compress => [qw(compress compress_best decompress)],
 );
 
 Exporter::export_tags('compress');

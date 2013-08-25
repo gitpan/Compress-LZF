@@ -1,7 +1,11 @@
 Revision history for Perl extension Compress::LZF
 
+3.7  Sun Aug 25 20:12:58 CEST 2013
+	- update liblzf to version 3.7 (speedups, no bugfixes).
+        - add _best versions that use lzf_c_best.
+
 3.43 Mon Dec 29 09:46:17 CET 2008
-	- port to perls that pointless have enabled windows process
+	- port to perls that pointlessly have enabled windows process
           emulation on unix (broguht to my attention by Guillaume Rousse).
 
 3.42 Wed Dec 17 01:35:47 CET 2008

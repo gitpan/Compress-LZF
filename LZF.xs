@@ -7,6 +7,7 @@
 
 #include "lzf_c.c"
 #include "lzf_d.c"
+#include "lzf_c_best.c"
 
 /* we re-use the storable header for our purposes */
 #define MAGIC_LO	0
@@ -32,7 +33,7 @@ static CV *storable_mstore, *storable_mretrieve;
 #endif
 
 static SV *
-compress_sv (SV *data, char cprepend, int uprepend)
+compress_sv (SV *data, char cprepend, int uprepend, int best)
 {
   LZF_STATE *state;
   STRLEN usize, csize;
@@ -54,7 +55,7 @@ compress_sv (SV *data, char cprepend, int uprepend)
         {
           dst[skip++] = usize;
         }
-      else if (usize <= 0x7ff) 
+      else if (usize <= 0x7ff)
         {
           dst[skip++] = (( usize >>  6)         | 0xc0);
           dst[skip++] = (( usize        & 0x3f) | 0x80);
@@ -98,7 +99,8 @@ compress_sv (SV *data, char cprepend, int uprepend)
 
       /* 11 bytes is the smallest compressible string */
       csize = usize < 11 ? 0 :
-              lzf_compress (src, usize, dst + skip, usize - skip, *state);
+              (best ? lzf_compress_best (src, usize, dst + skip, usize - skip)
+                    : lzf_compress (src, usize, dst + skip, usize - skip, *state));
 
       Safefree (state);
 
@@ -251,9 +253,11 @@ set_serializer(package, mstore, mretrieve)
 void
 compress(data)
         SV *	data
+        ALIAS:
+        compress_best = 1
         PROTOTYPE: $
         PPCODE:
-        XPUSHs (sv_2mortal (compress_sv (data, 0, MAGIC_U)));
+        XPUSHs (sv_2mortal (compress_sv (data, 0, MAGIC_U, ix)));
 
 void
 decompress(data)
@@ -266,10 +270,17 @@ void
 sfreeze(sv)
 	SV *	sv
         ALIAS:
-        sfreeze_cr = 1
-        sfreeze_c  = 2
+        sfreeze         = 0
+        sfreeze_cr      = 1
+        sfreeze_c       = 2
+        sfreeze_best    = 4
+        sfreeze_cr_best = 5
+        sfreeze_c_best  = 6
         PROTOTYPE: $
         PPCODE:
+{
+	int best = ix & 4;
+        ix &= 3;
 
         SvGETMAGIC (sv);
 
@@ -325,14 +336,14 @@ sfreeze(sv)
               }
 
             if (ix) /* compress */
-              sv = sv_2mortal (compress_sv (sv, deref ? MAGIC_CR_deref : MAGIC_CR, -1));
+              sv = sv_2mortal (compress_sv (sv, deref ? MAGIC_CR_deref : MAGIC_CR, -1, best));
 
             XPUSHs (sv);
           }
         else if (SvPOKp (sv) && IN_RANGE (SvPVX (sv)[0], MAGIC_LO, MAGIC_HI))
-          XPUSHs (sv_2mortal (compress_sv (sv, MAGIC_C, MAGIC_U))); /* need to prefix only */
+          XPUSHs (sv_2mortal (compress_sv (sv, MAGIC_C, MAGIC_U, best))); /* need to prefix only */
         else if (ix == 2) /* compress always */
-          XPUSHs (sv_2mortal (compress_sv (sv, MAGIC_C, -1)));
+          XPUSHs (sv_2mortal (compress_sv (sv, MAGIC_C, -1, best)));
         else if (SvNIOK (sv)) /* don't compress */
           {
             STRLEN len;
@@ -341,6 +352,7 @@ sfreeze(sv)
           }
         else /* don't compress */
           XPUSHs (sv_2mortal (newSVsv (sv)));
+}
 
 void
 sthaw(sv)

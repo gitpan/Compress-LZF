@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000-2010,2012 Marc Alexander Lehmann <schmorp@schmorp.de>
+ * Copyright (c) 2000-2012 Marc Alexander Lehmann <schmorp@schmorp.de>
  *
  * Redistribution and use in source and binary forms, with or without modifica-
  * tion, are permitted provided that the following conditions are met:
@@ -36,40 +36,7 @@
 
 #include "lzfP.h"
 
-#define HSIZE (1 << (HLOG))
-
-/*
- * don't play with this unless you benchmark!
- * the data format is not dependent on the hash function.
- * the hash function might seem strange, just believe me,
- * it works ;)
- */
-#ifndef FRST
-# define FRST(p) (((p[0]) << 8) | p[1])
-# define NEXT(v,p) (((v) << 8) | p[2])
-# if MULTIPLICATION_IS_SLOW
-#  if ULTRA_FAST
-#   define IDX(h) ((( h             >> (3*8 - HLOG)) - h  ) & (HSIZE - 1))
-#  elif VERY_FAST
-#   define IDX(h) ((( h             >> (3*8 - HLOG)) - h*5) & (HSIZE - 1))
-#  else
-#   define IDX(h) ((((h ^ (h << 5)) >> (3*8 - HLOG)) - h*5) & (HSIZE - 1))
-#  endif
-# else
-/* this one was developed with sesse,
- * and is very similar to the one in snappy.
- * it does need a modern enough cpu with a fast multiplication.
- */
-#  define IDX(h) (((h * 0x1e35a7bdU) >> (32 - HLOG - 8)) & (HSIZE - 1))
-# endif
-#endif
-
-#if 0
-/* original lzv-like hash function, much worse and thus slower */
-# define FRST(p) (p[0] << 5) ^ p[1]
-# define NEXT(v,p) ((v) << 5) ^ p[2]
-# define IDX(h) ((h) & (HSIZE - 1))
-#endif
+#define HASH(p) (p[0] << 6) ^ (p[1] << 3) ^ p[2]
 
 #define        MAX_LIT        (1 <<  5)
 #define        MAX_OFF        (1 << 13)
@@ -96,78 +63,66 @@
  */
 
 unsigned int
-lzf_compress (const void *const in_data, unsigned int in_len,
-	      void *out_data, unsigned int out_len
-#if LZF_STATE_ARG
-              , LZF_STATE htab
-#endif
-              )
+lzf_compress_best (const void *const in_data, unsigned int in_len,
+	           void *out_data, unsigned int out_len)
 {
-#if !LZF_STATE_ARG
-  LZF_STATE htab;
-#endif
   const u8 *ip = (const u8 *)in_data;
         u8 *op = (u8 *)out_data;
   const u8 *in_end  = ip + in_len;
         u8 *out_end = op + out_len;
-  const u8 *ref;
 
-  /* off requires a type wide enough to hold a general pointer difference.
-   * ISO C doesn't have that (size_t might not be enough and ptrdiff_t only
-   * works for differences within a single object). We also assume that
-   * no bit pattern traps. Since the only platform that is both non-POSIX
-   * and fails to support both assumptions is windows 64 bit, we make a
-   * special workaround for it.
-   */
-#if defined (_WIN32) && defined (_M_X64)
-  /* workaround for missing POSIX compliance */
-  #if __GNUC__
-    unsigned long long off;
-  #else
-    unsigned __int64 off;
-  #endif
-#else
-  unsigned long off;
-#endif
-  unsigned int hval;
+  const u8 *first [1 << (6+8)]; /* most recent occurance of a match */
+  u16 prev [MAX_OFF]; /* how many bytes to go backwards for te next match */
+
   int lit;
 
   if (!in_len || !out_len)
     return 0;
 
-#if INIT_HTAB
-  memset (htab, 0, sizeof (htab));
-#endif
-
   lit = 0; op++; /* start run */
 
-  hval = FRST (ip);
+  lit++; *op++ = *ip++;
+
   while (ip < in_end - 2)
     {
-      LZF_HSLOT *hslot;
+      int best_l = 0;
+      const u8 *best_p;
+      int e = (in_end - ip < MAX_REF ? in_end - ip : MAX_REF) - 1;
+      unsigned int res = ((unsigned int)ip) & (MAX_OFF - 1);
+      u16 hash = HASH (ip);
+      u16 diff;
+      const u8 *b = ip < (u8 *)in_data + MAX_OFF ? in_data : ip - MAX_OFF;
+      const u8 *p = first [hash];
+      prev [res] = ip - p; /* update ptr to previous hash match */
+      first [hash] = ip; /* first hash match is here */
 
-      hval = NEXT (hval, ip);
-      hslot = htab + IDX (hval);
-      ref = *hslot + LZF_HSLOT_BIAS; *hslot = ip - LZF_HSLOT_BIAS;
-
-      if (1
-#if INIT_HTAB
-          && ref < ip /* the next test will actually take care of this, but this is faster */
-#endif
-          && (off = ip - ref - 1) < MAX_OFF
-          && ref > (u8 *)in_data
-          && ref[2] == ip[2]
-#if STRICT_ALIGN
-          && ((ref[1] << 8) | ref[0]) == ((ip[1] << 8) | ip[0])
-#else
-          && *(u16 *)ref == *(u16 *)ip
-#endif
-        )
+      if (p < ip)
+      while (p >= b)
         {
-          /* match found at *ref++ */
-          unsigned int len = 2;
-          unsigned int maxlen = in_end - ip - len;
-          maxlen = maxlen > MAX_REF ? MAX_REF : maxlen;
+          if (p[2] == ip[2]) /* first two bytes almost always match */
+            if (p[best_l] == ip[best_l]) /* new match must be longer than the old one to qualify */
+              if (p[1] == ip[1] && p[0] == ip[0]) /* just to be sure */
+                {
+                  int l = 3;
+
+                  while (p[l] == ip[l] && l < e)
+                    ++l;
+
+                  if (l >= best_l)
+                    {
+                      best_p = p;
+                      best_l = l;
+                    }
+                }
+
+          diff = prev [((unsigned int)p) & (MAX_OFF - 1)];
+          p = diff ? p - diff : 0;
+        }
+
+      if (best_l)
+        {
+          int len = best_l;
+          int off = ip - best_p - 1;
 
           if (expect_false (op + 3 + 1 >= out_end)) /* first a faster conservative test */
             if (op - !lit + 3 + 1 >= out_end) /* second the exact but rare test */
@@ -175,38 +130,6 @@ lzf_compress (const void *const in_data, unsigned int in_len,
 
           op [- lit - 1] = lit - 1; /* stop run */
           op -= !lit; /* undo run if length is zero */
-
-          for (;;)
-            {
-              if (expect_true (maxlen > 16))
-                {
-                  len++; if (ref [len] != ip [len]) break;
-                  len++; if (ref [len] != ip [len]) break;
-                  len++; if (ref [len] != ip [len]) break;
-                  len++; if (ref [len] != ip [len]) break;
-
-                  len++; if (ref [len] != ip [len]) break;
-                  len++; if (ref [len] != ip [len]) break;
-                  len++; if (ref [len] != ip [len]) break;
-                  len++; if (ref [len] != ip [len]) break;
-
-                  len++; if (ref [len] != ip [len]) break;
-                  len++; if (ref [len] != ip [len]) break;
-                  len++; if (ref [len] != ip [len]) break;
-                  len++; if (ref [len] != ip [len]) break;
-
-                  len++; if (ref [len] != ip [len]) break;
-                  len++; if (ref [len] != ip [len]) break;
-                  len++; if (ref [len] != ip [len]) break;
-                  len++; if (ref [len] != ip [len]) break;
-                }
-
-              do
-                len++;
-              while (len < maxlen && ref[len] == ip[len]);
-
-              break;
-            }
 
           len -= 2; /* len is now #octets - 1 */
           ip++;
@@ -230,33 +153,21 @@ lzf_compress (const void *const in_data, unsigned int in_len,
           if (expect_false (ip >= in_end - 2))
             break;
 
-#if ULTRA_FAST || VERY_FAST
-          --ip;
-# if VERY_FAST && !ULTRA_FAST
-          --ip;
-# endif
-          hval = FRST (ip);
-
-          hval = NEXT (hval, ip);
-          htab[IDX (hval)] = ip - LZF_HSLOT_BIAS;
-          ip++;
-
-# if VERY_FAST && !ULTRA_FAST
-          hval = NEXT (hval, ip);
-          htab[IDX (hval)] = ip - LZF_HSLOT_BIAS;
-          ip++;
-# endif
-#else
           ip -= len + 1;
 
+          //printf (" fill %p for %d\n", ip, len);//D
           do
             {
-              hval = NEXT (hval, ip);
-              htab[IDX (hval)] = ip - LZF_HSLOT_BIAS;
+              u16 hash = HASH (ip);
+              res = ((unsigned int)ip) & (MAX_OFF - 1);
+
+              p = first [hash];
+              prev [res] = ip - p; /* update ptr to previous hash match */
+              first [hash] = ip; /* first hash match is here */
+
               ip++;
             }
           while (len--);
-#endif
         }
       else
         {

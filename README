@@ -29,55 +29,73 @@ DESCRIPTION
     patents.
 
 FUNCTIONS
-  $compressed = compress $uncompressed
-    Try to compress the given string as quickly and as much as possible. In
-    the worst case, the string can enlarge by 1 byte, but that should be the
-    absolute exception. You can expect a 45% compression ratio on large,
-    binary strings.
+    $compressed = compress $uncompressed
+    $compressed = compress_best $uncompressed
+        Try to compress the given string as quickly and as much as possible.
+        In the worst case, the string can enlarge by 1 byte, but that should
+        be the absolute exception. You can expect a 45% compression ratio on
+        large, binary strings.
 
-  $decompressed = decompress $compressed
-    Uncompress the string (compressed by "compress") and return the original
-    data. Decompression errors can result in either broken data (there is no
-    checksum kept) or a runtime error.
+        The "compress_best" function uses a different algorithm that is
+        slower but usually achieves better compression.
 
-  $serialized = sfreeze $value (simplified freeze)
-    Often there is the need to serialize data into a string. This function
-    does that, by using the Storable module. It does the following
-    transforms:
+    $decompressed = decompress $compressed
+        Uncompress the string (compressed by "compress") and return the
+        original data. Decompression errors can result in either broken data
+        (there is no checksum kept) or a runtime error.
 
-      undef (the perl undefined value)
-         => a special cookie (undef'ness is being preserved)
-      IV, NV, PV (i.e. a _plain_ perl scalar):
-         => stays as is when it contains normal text/numbers
-         => gets serialized into a string
-      RV, undef, other funny objects (magical ones for example):
-         => data structure is freeze'd into a string.
+    $serialized = sfreeze $value (simplified freeze)
+    $serialized = sfreeze_best $value
+        Often there is the need to serialize data into a string. This
+        function does that, by using the Storable module. It does the
+        following transforms:
 
-    That is, it tries to leave "normal", human-readable data untouched but
-    still serializes complex data structures into strings. The idea is to
-    keep readability as high as possible, and in cases readability can't be
-    helped anyways, it tries to compress the string.
+          undef (the perl undefined value)
+             => a special cookie (undef'ness is being preserved)
+          IV, NV, PV (i.e. a _plain_ perl scalar):
+             => stays as is when it contains normal text/numbers
+             => gets serialized into a string
+          RV, undef, other funny objects (magical ones for example):
+             => data structure is freeze'd into a string.
 
-    The "sfreeze" functions will enlarge the original data one byte at most
-    and will only load the Storable method when neccessary.
+        That is, it tries to leave "normal", human-readable data untouched
+        but still serializes complex data structures into strings. The idea
+        is to keep readability as high as possible, and in cases readability
+        can't be helped anyways, it tries to compress the string.
 
-  $serialized = sfreeze_c $value (sfreeze and compress)
-    Similar to "sfreeze", but always tries to "c"ompress the resulting
-    string. This still leaves most small objects (most numbers) untouched.
+        The "sfreeze" functions will enlarge the original data one byte at
+        most and will only load the Storable method when neccessary.
 
-  $serialized = sfreeze_cr $value (sfreeze and compress references)
-    Similar to "sfreeze", but tries to "c"ompress the resulting string
-    unless it's a "simple" string. References for example are not "simple"
-    and as such are being compressed.
+        The "sfreeze_best" function uses a different algorithm that is
+        slower but usually achieves better compression.
 
-  $original_data = sthaw $serialized
-    Recreate the original object from it's serialized representation. This
-    function automatically detects all the different sfreeze formats.
+    $serialized = sfreeze_c $value (sfreeze and compress)
+    $serialized = sfreeze_c_best $value
+        Similar to "sfreeze", but always tries to "c"ompress the resulting
+        string. This still leaves most small objects (most numbers)
+        untouched.
 
-  Compress::LZF::set_serializer $package, $freeze, $thaw
-    Set the serialize module and functions to use. The default is
-    "Storable", "Storable::net_mstore" and "Storable::mretrieve", which
-    should be fine for most purposes.
+        The "sfreeze_c" function uses a different algorithm that is slower
+        but usually achieves better compression.
+
+    $serialized = sfreeze_cr $value (sfreeze and compress references)
+    $serialized = sfreeze_cr_best $value
+        Similar to "sfreeze", but tries to "c"ompress the resulting string
+        unless it's a "simple" string. References for example are not
+        "simple" and as such are being compressed.
+
+        The "sfreeze_cr_best" function uses a different algorithm that is
+        slower but usually achieves better compression.
+
+    $original_data = sthaw $serialized
+        Recreate the original object from it's serialized representation.
+        This function automatically detects all the different sfreeze
+        formats.
+
+    Compress::LZF::set_serializer $package, $freeze, $thaw
+        Set the serialize module and functions to use. The default is
+        "Storable", "Storable::net_mstore" and "Storable::mretrieve", which
+        should be fine for most purposes.
 
 SEE ALSO
     Other Compress::* modules, especially Compress::LZV1 (an older, less
